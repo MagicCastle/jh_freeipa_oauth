@@ -16,8 +16,11 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dependencies = [
+  "jupyterhub",
+  "oauthenticator"
+]
 
 [project.urls]
 Homepage = "https://github.com/magiccastle/oauth2freeipa"
 Issues = "https://github.com/magiccastle/oauth2freeipa/issues"
-
