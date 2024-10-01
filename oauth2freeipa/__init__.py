@@ -37,6 +37,17 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
         help="",
     )
 
+    def system_user_exists(self, user):
+        subprocess.run(
+                ["kinit", "-kt", self.keytab_path, "-p", self.keytab_principal]
+            )
+        process = subprocess.run(["ipa", "user-show", user.name])
+        subprocess.run(["kdestroy"])
+        if process.returncode == 0:
+            return True
+        else:
+            return False
+
     def add_system_user(self, user):
         user_add_cmd = shlex.split(self.user_add_cmd) + [user.name]
         if self.default_group:
