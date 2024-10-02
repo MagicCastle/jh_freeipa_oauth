@@ -43,7 +43,7 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
             capture_output=True,
         )
         process = subprocess.run(["ipa", "user-show", user.name], capture_output=True)
-        subprocess.run(["kdestroy"], capture_output=True)
+        subprocess.run(["kdestroy", "-p", self.keytab_principal], capture_output=True)
         if process.returncode == 0:
             return True
         else:
@@ -63,6 +63,7 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
             raise RuntimeError(
                 f"Failed to create FreeIPA user {user.name} - could not init Kerberos"
             )
+
         try:
             subprocess.run(user_add_cmd, capture_output=True)
         except:
@@ -74,7 +75,7 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
             subprocess.run(["kdestroy", "-p", self.keytab_principal], capture_output=True)
         except:
             raise RuntimeError(
-                f"Failed to create FreeIPA user {user.name} - fail to run {user_add_cmd}"
+                f"Failed to create FreeIPA user {user.name} - fail to destroy Kerberos ticket"
             )
 
         for i in range(self.max_add_user_retry):
