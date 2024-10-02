@@ -14,7 +14,7 @@ from traitlets import Unicode, Int
 class LocalFreeIPAAuthenticator(LocalAuthenticator):
     """Authenticator that add system user to FreeIPA database"""
 
-    max_add_user_delay = Int(10, config=True, help="")
+    max_add_user_retry = Int(10, config=True, help="")
 
     default_group = Unicode(
         "def-sponsor00",
@@ -39,10 +39,11 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
 
     def system_user_exists(self, user):
         subprocess.run(
-                ["kinit", "-kt", self.keytab_path, "-p", self.keytab_principal]
-            )
-        process = subprocess.run(["ipa", "user-show", user.name])
-        subprocess.run(["kdestroy"])
+            ["kinit", "-kt", self.keytab_path, "-p", self.keytab_principal],
+            capture_output=True,
+        )
+        process = subprocess.run(["ipa", "user-show", user.name], capture_output=True)
+        subprocess.run(["kdestroy"], capture_output=True)
         if process.returncode == 0:
             return True
         else:
@@ -55,34 +56,35 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
 
         try:
             subprocess.run(
-                ["kinit", "-kt", self.keytab_path, "-p", self.keytab_principal]
+                ["kinit", "-kt", self.keytab_path, "-p", self.keytab_principal],
+                capture_output=True
             )
         except:
             raise RuntimeError(
                 f"Failed to create FreeIPA user {user.name} - could not init Kerberos"
             )
         try:
-            subprocess.run(user_add_cmd)
+            subprocess.run(user_add_cmd, capture_output=True)
         except:
             raise RuntimeError(
                 f"Failed to create FreeIPA user {user.name} - fail to run {user_add_cmd}"
             )
 
         try:
-            subprocess.run(["kdestroy", "-p", self.keytab_principal])
+            subprocess.run(["kdestroy", "-p", self.keytab_principal], capture_output=True)
         except:
             raise RuntimeError(
                 f"Failed to create FreeIPA user {user.name} - fail to run {user_add_cmd}"
             )
 
-        for i in range(self.max_add_user_delay):
+        for i in range(self.max_add_user_retry):
             if not self.system_user_exists(user):
                 time.sleep(1)
             else:
                 return
 
         raise RuntimeError(
-            f"Failed to create FreeIPA user {user.name} - user cannot be found after {self.max_add_user_delay} seconds."
+            f"Failed to create FreeIPA user {user.name} - user cannot be found after {self.max_add_user_retry} retries."
         )
 
 
