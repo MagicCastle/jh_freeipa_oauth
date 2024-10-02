@@ -2,6 +2,8 @@ import shlex
 import subprocess
 import time
 
+from contextlib import contextmanager
+
 from jupyterhub.auth import LocalAuthenticator
 
 from oauthenticator.generic import GenericOAuthenticator
@@ -37,13 +39,21 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
         help="",
     )
 
-    def system_user_exists(self, user):
+    @contextmanager
+    def kerberos_ticket(self):
         subprocess.run(
             ["kinit", "-kt", self.keytab_path, "-p", self.keytab_principal],
             capture_output=True,
         )
-        process = subprocess.run(["ipa", "user-show", user.name], capture_output=True)
-        subprocess.run(["kdestroy", "-p", self.keytab_principal], capture_output=True)
+        try:
+            yield
+        finally:
+            subprocess.run(["kdestroy", "-p", self.keytab_principal], capture_output=True)
+
+    def system_user_exists(self, user):
+        with self.kerberos_ticket():
+            process = subprocess.run(["ipa", "user-show", user.name], capture_output=True)
+
         if process.returncode == 0:
             return True
         else:
@@ -55,38 +65,21 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
             user_add_cmd.extend(["--posix_group", self.default_group])
 
         try:
-            subprocess.run(
-                ["kinit", "-kt", self.keytab_path, "-p", self.keytab_principal],
-                capture_output=True
-            )
-        except:
-            raise RuntimeError(
-                f"Failed to create FreeIPA user {user.name} - could not init Kerberos"
-            )
-
-        try:
-            subprocess.run(user_add_cmd, capture_output=True)
+            with self.kerberos_ticket():
+                subprocess.run(user_add_cmd, capture_output=True)
         except:
             raise RuntimeError(
                 f"Failed to create FreeIPA user {user.name} - fail to run {user_add_cmd}"
             )
 
-        try:
-            subprocess.run(["kdestroy", "-p", self.keytab_principal], capture_output=True)
-        except:
-            raise RuntimeError(
-                f"Failed to create FreeIPA user {user.name} - fail to destroy Kerberos ticket"
-            )
-
         for i in range(self.max_add_user_retry):
-            if not self.system_user_exists(user):
-                time.sleep(1)
-            else:
-                return
-
-        raise RuntimeError(
-            f"Failed to create FreeIPA user {user.name} - user cannot be found after {self.max_add_user_retry} retries."
-        )
+            if self.system_user_exists(user):
+                break
+            time.sleep(1)
+        else:
+            raise RuntimeError(
+                f"Failed to create FreeIPA user {user.name} - user cannot be found after {self.max_add_user_retry} retries."
+            )
 
 
 class LocalFreeIPAGenericOAuthenticator(
