@@ -24,3 +24,8 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/magiccastle/oauth2freeipa"
 Issues = "https://github.com/magiccastle/oauth2freeipa/issues"
+
+[project.entry-points."jupyterhub.authenticators"]
+ipa-oauth = "oauth2freeipa:LocalFreeIPAGenericOAuthenticator"
+ipa-github = "oauth2freeipa:LocalFreeIPAGitHubOAuthenticator"
+ipa-cilogon = "oauth2freeipa:LocalFreeIPACILogonOAuthenticator"
