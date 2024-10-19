@@ -29,7 +29,7 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
         help="",
     )
     keytab_principal = Unicode(
-        "jupyterhub",
+        "jupyterhub/jupyterhub",
         config=True,
         help="",
     )
