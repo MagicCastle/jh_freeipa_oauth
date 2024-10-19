@@ -67,9 +67,13 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
         try:
             with self.kerberos_ticket():
                 subprocess.run(user_add_cmd, check=True, capture_output=True)
-        except:
+        except OSError as e:
+             raise RuntimeError(
+                f"Failed to create FreeIPA user {user.name} - could not call {user_add_cmd}: {e}"
+            )
+        except subprocess.CalledProcessError as e:
             raise RuntimeError(
-                f"Failed to create FreeIPA user {user.name} - fail to run {user_add_cmd}"
+                f"Failed to create FreeIPA user {user.name} - {user_add_cmd} returned with an error: {e}"
             )
 
         for i in range(self.max_add_user_retry):
