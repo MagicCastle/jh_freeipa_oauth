@@ -3,6 +3,7 @@ import subprocess
 import time
 
 from contextlib import contextmanager
+from os import path
 
 from jupyterhub.auth import LocalAuthenticator
 
@@ -59,6 +60,14 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
         else:
             return False
 
+    def pre_spawn_start(self, user, spawner):
+        while not self.system_user_exists(user):
+            yield
+        while not path.exists(f"/home/{user.name}"):
+            yield
+        while len(subprocess.run(['sacctmgr', 'user', 'show', '-n', user.name], capture_output=True).stdout) == 0:
+            yield
+
     def add_system_user(self, user):
         user_add_cmd = shlex.split(self.user_add_cmd) + [user.name]
         if self.default_group:
@@ -75,16 +84,6 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
             raise RuntimeError(
                 f"Failed to create FreeIPA user {user.name} - {user_add_cmd} returned with an error: {e}"
             )
-
-        for i in range(self.max_add_user_retry):
-            if self.system_user_exists(user):
-                break
-            time.sleep(1)
-        else:
-            raise RuntimeError(
-                f"Failed to create FreeIPA user {user.name} - user cannot be found after {self.max_add_user_retry} retries."
-            )
-
 
 class LocalFreeIPAGenericOAuthenticator(
     LocalFreeIPAAuthenticator, GenericOAuthenticator
