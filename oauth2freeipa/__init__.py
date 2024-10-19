@@ -1,3 +1,4 @@
+import asyncio
 import shlex
 import subprocess
 import time
@@ -60,13 +61,16 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
         else:
             return False
 
-    def pre_spawn_start(self, user, spawner):
+    async def pre_spawn_start(self, user, spawner):
         while not self.system_user_exists(user):
-            yield
+            self.log.warning(f"{user.name} does not exist yet")
+            await asyncio.sleep(1)
         while not path.exists(f"/home/{user.name}"):
-            yield
+            self.log.warning(f"Home folder for {user.name} is missing")
+            await asyncio.sleep(1)
         while len(subprocess.run(['sacctmgr', 'user', 'show', '-n', user.name], capture_output=True).stdout) == 0:
-            yield
+            self.log.warning(f"Slurm account for {user.name} is missing")
+            await asyncio.sleep(1)
 
     def add_system_user(self, user):
         user_add_cmd = shlex.split(self.user_add_cmd) + [user.name]
