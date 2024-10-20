@@ -64,14 +64,22 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
         return process.returncode == 0
 
     async def pre_spawn_start(self, user, spawner):
-        async with asyncio.timeout(self.pre_spawn_timeout):
-            while not path.exists(f"/home/{user.name}"):
-                self.log.warning(f"Home folder for {user.name} is missing")
-                await asyncio.sleep(1)
-            if issubclass(spawner, SlurmSpawner):
-                while len(subprocess.run(['sacctmgr', 'show', 'user', '-n', user.name], capture_output=True).stdout) == 0:
-                    self.log.warning(f"Slurm account for {user.name} is missing")
+        if user.last_activity is None:
+            # User has never spawned a Jupyter singe server before
+            # we check conditions for initial spawn to be successful
+            # 1. user's home exists
+            # 2. When using Slurm, does the user have an account
+            # We wait `pre_spawn_timeout` seconds for the conditions to be fulfilled
+            # as an external process is in charge of creating the home folder
+            # and the Slurm account.
+            async with asyncio.timeout(self.pre_spawn_timeout):
+                while not path.exists(f"/home/{user.name}"):
+                    self.log.warning(f"Home folder for {user.name} is missing")
                     await asyncio.sleep(1)
+                if issubclass(spawner, SlurmSpawner):
+                    while len(subprocess.run(['sacctmgr', 'show', 'user', '-n', user.name], capture_output=True).stdout) == 0:
+                        self.log.warning(f"Slurm account for {user.name} is missing")
+                        await asyncio.sleep(1)
 
     def add_system_user(self, user):
         user_add_cmd = shlex.split(self.user_add_cmd) + [user.name]
