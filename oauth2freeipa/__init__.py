@@ -42,7 +42,7 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
         help="",
     )
     pre_spawn_timeout = Int(
-        10,
+        30,
         config=True,
         help="How long the authenticator can wait on user creation before cancelling the spawn",
     )
