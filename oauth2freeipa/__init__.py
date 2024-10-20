@@ -61,18 +61,14 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
     def system_user_exists(self, user):
         with self.kerberos_ticket():
             process = subprocess.run(["ipa", "user-show", user.name], capture_output=True)
-
-        if process.returncode == 0:
-            return True
-        else:
-            return False
+        return process.returncode == 0
 
     async def pre_spawn_start(self, user, spawner):
         async with asyncio.timeout(self.pre_spawn_timeout):
             while not path.exists(f"/home/{user.name}"):
                 self.log.warning(f"Home folder for {user.name} is missing")
                 await asyncio.sleep(1)
-            if isinstance(spawner, SlurmSpawner):
+            if issubclass(spawner, SlurmSpawner):
                 while len(subprocess.run(['sacctmgr', 'show', 'user', '-n', user.name], capture_output=True).stdout) == 0:
                     self.log.warning(f"Slurm account for {user.name} is missing")
                     await asyncio.sleep(1)
