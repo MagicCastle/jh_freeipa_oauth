@@ -64,7 +64,7 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
         return process.returncode == 0
 
     async def pre_spawn_start(self, user, spawner):
-        if not user.last_activity:
+        if not spawner.last_activity:
             # User has never spawned a Jupyter singe server before
             # we check conditions for initial spawn to be successful
             # 1. user's home exists
