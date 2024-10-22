@@ -76,7 +76,7 @@ class LocalFreeIPAAuthenticator(LocalAuthenticator):
                 while not path.exists(f"/home/{user.name}"):
                     self.log.warning(f"Home folder for {user.name} is missing")
                     await asyncio.sleep(1)
-                if issubclass(spawner, SlurmSpawner):
+                if isinstance(spawner, SlurmSpawner):
                     while len(subprocess.run(['sacctmgr', 'show', 'user', '-n', user.name], capture_output=True).stdout) == 0:
                         self.log.warning(f"Slurm account for {user.name} is missing")
                         await asyncio.sleep(1)
