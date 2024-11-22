@@ -8,7 +8,7 @@ version = "1.2.8"
 authors = [
   { name="Félix-Antoine Fortin", email="felix@calculquebec.ca" },
 ]
-description = "Package to create FreeIPA users after connecting in JupyterHub with oauthenticator"
+description = "Package to create FreeIPA users after connecting in JupyterHub with oauthenticator or ltiauthenticator"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
