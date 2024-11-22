@@ -113,7 +113,7 @@ class LocalFreeIPAGitHubOAuthenticator(LocalFreeIPAAuthenticator, GitHubOAuthent
 class LocalFreeIPACILogonOAuthenticator(
     LocalFreeIPAAuthenticator, CILogonOAuthenticator
 ):
-    """Mixes FreeIPA user creation and GitHub OAuthenticator"""
+    """Mixes FreeIPA user creation and CILogon OAuthenticator"""
 
 class LocalFreeIPALTI11Authenticator(
     LocalFreeIPAAuthenticator, LTI11Authenticator
