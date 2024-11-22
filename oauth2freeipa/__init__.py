@@ -11,6 +11,8 @@ from oauthenticator.generic import GenericOAuthenticator
 from oauthenticator.github import GitHubOAuthenticator
 from oauthenticator.cilogon import CILogonOAuthenticator
 
+from ltiauthenticator.lti11.auth import LTI11Authenticator
+from ltiauthenticator.lti13.auth import LTI13Authenticator
 from batchspawner import SlurmSpawner
 
 from traitlets import Unicode, Int
@@ -112,3 +114,13 @@ class LocalFreeIPACILogonOAuthenticator(
     LocalFreeIPAAuthenticator, CILogonOAuthenticator
 ):
     """Mixes FreeIPA user creation and GitHub OAuthenticator"""
+
+class LocalFreeIPALTI11Authenticator(
+    LocalFreeIPAAuthenticator, LTI11Authenticator
+):
+    """Mixes FreeIPA user creation and LTI1.1 Authenticator"""
+
+class LocalFreeIPALTI13Authenticator(
+    LocalFreeIPAAuthenticator, LTI13Authenticator
+):
+    """Mixes FreeIPA user creation and LTI1.3 Authenticator"""
