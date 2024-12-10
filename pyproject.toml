@@ -8,7 +8,7 @@ version = "1.2.8"
 authors = [
   { name="Félix-Antoine Fortin", email="felix@calculquebec.ca" },
 ]
-description = "Package to create FreeIPA users after connecting in JupyterHub with oauthenticator"
+description = "Package to create FreeIPA users after connecting in JupyterHub with oauthenticator or ltiauthenticator"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
@@ -18,7 +18,8 @@ classifiers = [
 ]
 dependencies = [
   "jupyterhub",
-  "oauthenticator"
+  "oauthenticator",
+  "jupyterhub-ltiauthenticator"
 ]
 
 [project.urls]
@@ -29,3 +30,5 @@ Issues = "https://github.com/magiccastle/oauth2freeipa/issues"
 ipa-oauth = "oauth2freeipa:LocalFreeIPAGenericOAuthenticator"
 ipa-github = "oauth2freeipa:LocalFreeIPAGitHubOAuthenticator"
 ipa-cilogon = "oauth2freeipa:LocalFreeIPACILogonOAuthenticator"
+ipa-lti11 = "oauth2freeipa:LocalFreeIPALTI11Authenticator"
+ipa-lti13 = "oauth2freeipa:LocalFreeIPALTI13Authenticator"
